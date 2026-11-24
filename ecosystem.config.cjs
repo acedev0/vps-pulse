@@ -3,15 +3,14 @@ module.exports = {
     {
       name: 'vps-pulse',
       script: 'server/index.js',
-      cwd: '/opt/vps-pulse',
+      cwd: __dirname,
       instances: 1,
       autorestart: true,
       watch: false,
-      max_memory_restart: '250M',
+      max_memory_restart: '300M',
       env: {
         NODE_ENV: 'production',
-        PORT: '7777',
-        VPS_IP: '139.162.52.81'
+        PORT: process.env.PORT || '7777'
       }
     }
   ]

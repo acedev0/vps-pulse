@@ -17,8 +17,8 @@ export default function App() {
   const network = data?.network || {};
   const sockets = data?.sockets || [];
   const vps = data?.vps || {
-    ip: '139.162.52.81', city: 'Singapore', country: 'SG', flag: '🇸🇬',
-    ll: [1.2897, 103.8501], org: 'Akamai Connected Cloud / Linode 4TB'
+    ip: '127.0.0.1', city: 'Host Node', country: 'VPS', flag: '🌐',
+    ll: [1.2897, 103.8501], org: 'Primary Network', hostname: 'linux-vps'
   };
 
   return (
@@ -56,11 +56,11 @@ export default function App() {
 
       {/* Footer */}
       <footer className="mt-1 py-3 border-t border-slate-900/40 flex flex-col sm:flex-row items-center justify-between text-[10px] font-mono-val text-slate-700">
-        <span>VPS PULSE v3.0 // LINODE AKAMAI // SINGAPORE DC</span>
+        <span>VPS PULSE // {vps?.hostname ? vps.hostname.toUpperCase() : 'LINUX NODE'} // {vps?.city ? vps.city.toUpperCase() : 'HOST'}</span>
         <div className="flex items-center gap-3">
-          <span>PORT 7777</span>
+          <span>PORT {vps?.port || '7777'}</span>
           <span className="text-slate-800">│</span>
-          <span>UBUNTU 24.04 NOBLE</span>
+          <span>{vps?.platform ? vps.platform.toUpperCase() : 'LINUX'} TELEMETRY</span>
           <span className="text-slate-800">│</span>
           <span className="text-emerald-600 font-bold flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block led-pulse" style={{color: '#10b981'}} />

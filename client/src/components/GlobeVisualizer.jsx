@@ -394,7 +394,7 @@ export function GlobeVisualizer({ sockets = [], vps = null, streamerMode = false
           </span>
         </div>
         <div className="text-[10px] font-mono-val text-slate-300 leading-relaxed pl-4">
-          NODE: <span className="text-emerald-400 font-bold">SINGAPORE [SG]</span> • 1.2897° N, 103.8501° E<br/>
+          NODE: <span className="text-emerald-400 font-bold">{(vps?.city || 'NODE').toUpperCase()} [{vps?.country || 'VPS'}]</span> • {Number(vps?.ll?.[0] || 0).toFixed(4)}°, {Number(vps?.ll?.[1] || 0).toFixed(4)}°<br/>
           STREAMS: <span className="text-cyan-300 font-bold">{sockets.length}</span> •
           COUNTRIES: <span className="text-pink-400 font-bold">{uniqueCountries.size}</span>
         </div>
@@ -412,7 +412,7 @@ export function GlobeVisualizer({ sockets = [], vps = null, streamerMode = false
         </div>
         <div className="flex items-center gap-2">
           <div className="w-2.5 h-2.5 rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981]" />
-          <span className="text-emerald-300 font-bold">Singapore VPS</span>
+          <span className="text-emerald-300 font-bold">{vps?.city || 'Host'} VPS Node</span>
         </div>
       </div>
 

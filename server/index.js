@@ -4,15 +4,41 @@ import { WebSocketServer, WebSocket } from 'ws';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import os from 'os';
+import fs from 'fs';
 import cors from 'cors';
 
 import { collectSystemMetrics } from './collectors/system.js';
 import { collectNetworkRates } from './collectors/network.js';
 import { collectActiveSockets } from './collectors/sockets.js';
+import { lookupIp } from './collectors/geoip.js';
 import { generateSimulatedTelemetry } from './simulator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// 1. Load environment from /etc/vps-pulse/vps-pulse.env or local .env
+function loadEnvFile(filePath) {
+  try {
+    if (fs.existsSync(filePath)) {
+      const content = fs.readFileSync(filePath, 'utf-8');
+      for (const line of content.split('\n')) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) continue;
+        const eqIdx = trimmed.indexOf('=');
+        if (eqIdx !== -1) {
+          const key = trimmed.slice(0, eqIdx).trim();
+          const val = trimmed.slice(eqIdx + 1).trim().replace(/^["']|["']$/g, '');
+          if (!process.env[key]) {
+            process.env[key] = val;
+          }
+        }
+      }
+    }
+  } catch (e) {}
+}
+
+loadEnvFile('/etc/vps-pulse/vps-pulse.env');
+loadEnvFile(path.join(__dirname, '../.env'));
 
 const PORT = parseInt(process.env.PORT || '7777', 10);
 const IS_LINUX = os.platform() === 'linux';
@@ -26,18 +52,64 @@ app.use(express.json());
 const clientDist = path.join(__dirname, '../client/dist');
 app.use(express.static(clientDist));
 
-// VPS Node profile
-const VPS_PROFILE = {
-  ip: process.env.VPS_IP || '139.162.52.81',
-  hostname: os.hostname(),
-  city: 'Singapore',
-  region: 'Singapore',
-  country: 'SG',
-  flag: '🇸🇬',
-  ll: [1.2897, 103.8501],
-  org: 'Akamai Connected Cloud / Linode 4TB',
-  storageTier: '4 TB NVMe'
+// 2. Dynamic VPS Node profile (auto-detects anywhere in the world)
+let VPS_PROFILE = {
+  ip: process.env.HOST_IP || process.env.VPS_IP || '127.0.0.1',
+  hostname: process.env.NODE_NAME || process.env.SERVER_NAME || os.hostname(),
+  city: 'Detecting Location...',
+  region: '',
+  country: 'GLOBAL',
+  flag: '🌐',
+  ll: [1.3521, 103.8198],
+  org: 'Host Network',
+  storageTier: 'Host Storage',
+  port: PORT,
+  platform: os.platform()
 };
+
+async function resolveHostIp() {
+  if (process.env.HOST_IP || process.env.VPS_IP) {
+    return (process.env.HOST_IP || process.env.VPS_IP).trim();
+  }
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2500);
+    const resp = await fetch('https://api.ipify.org?format=text', { signal: controller.signal });
+    clearTimeout(timeout);
+    if (resp.ok) {
+      const ip = (await resp.text()).trim();
+      if (/^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/.test(ip)) return ip;
+    }
+  } catch (e) {}
+
+  const ifaces = os.networkInterfaces();
+  for (const name of Object.keys(ifaces)) {
+    for (const net of ifaces[name] || []) {
+      if (net.family === 'IPv4' && !net.internal && !net.address.startsWith('127.')) {
+        return net.address;
+      }
+    }
+  }
+  return '127.0.0.1';
+}
+
+async function updateHostProfile() {
+  try {
+    const ip = await resolveHostIp();
+    const geo = lookupIp(ip) || {};
+    VPS_PROFILE.ip = ip;
+    VPS_PROFILE.hostname = process.env.NODE_NAME || process.env.SERVER_NAME || os.hostname();
+    VPS_PROFILE.city = process.env.HOST_CITY || geo.city || 'Cloud Node';
+    VPS_PROFILE.country = process.env.HOST_COUNTRY || geo.country || 'GLOBAL';
+    VPS_PROFILE.flag = geo.flag || '🌐';
+    VPS_PROFILE.ll = geo.ll || [1.3521, 103.8198];
+    VPS_PROFILE.org = process.env.HOST_ORG || geo.org || 'Primary Transit Network';
+    VPS_PROFILE.port = PORT;
+  } catch (err) {
+    console.error('Host profile initialization note:', err.message);
+  }
+}
+updateHostProfile();
 
 // REST API status endpoint
 app.get('/api/status', (req, res) => {

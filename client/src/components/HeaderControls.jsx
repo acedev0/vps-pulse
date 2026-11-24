@@ -42,12 +42,12 @@ export function HeaderControls({
             </span>
             <span className="text-slate-800">│</span>
             <span className="text-slate-400 font-semibold truncate">
-              {vps?.ip || '139.162.52.81'}
+              {vps?.ip || 'Detecting IP...'}
             </span>
             <span className="text-slate-800">│</span>
-            <span className="text-cyan-500/80">{vps?.flag} {vps?.city || 'Singapore'}</span>
+            <span className="text-cyan-500/80">{vps?.flag} {vps?.city || 'Host Node'}</span>
             <span className="text-slate-800">│</span>
-            <span className="text-slate-600">{vps?.org || 'Linode'}</span>
+            <span className="text-slate-600">{vps?.org || 'Primary Network'}</span>
           </div>
         </div>
       </div>
