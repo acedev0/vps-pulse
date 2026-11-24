@@ -1,0 +1,155 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+INSTALL_DIR="/opt/vps-pulse"
+ENV_FILE="/etc/vps-pulse/vps-pulse.env"
+SERVICE_NAME="vps-pulse"
+
+if [[ -t 1 ]]; then
+  GREEN='\033[0;32m'; CYAN='\033[0;36m'; RED='\033[0;31m'; BOLD='\033[1m'; RESET='\033[0m'
+else
+  GREEN=''; CYAN=''; RED=''; BOLD=''; RESET=''
+fi
+
+info() { printf "${CYAN}●${RESET} %s\n" "$*"; }
+success() { printf "${GREEN}✓${RESET} %s\n" "$*"; }
+error() { printf "${RED}✗ Error:${RESET} %s\n" "$*" >&2; }
+
+is_systemd() {
+  systemctl list-unit-files "${SERVICE_NAME}.service" >/dev/null 2>&1
+}
+
+cmd_status() {
+  if is_systemd; then
+    systemctl status "${SERVICE_NAME}.service" --no-pager
+  elif command -v pm2 >/dev/null 2>&1; then
+    pm2 status "${SERVICE_NAME}"
+  else
+    error "No active process manager found."
+  fi
+}
+
+cmd_logs() {
+  if is_systemd; then
+    journalctl -u "${SERVICE_NAME}.service" -f --no-pager
+  elif command -v pm2 >/dev/null 2>&1; then
+    pm2 logs "${SERVICE_NAME}"
+  else
+    error "No active process manager found."
+  fi
+}
+
+cmd_restart() {
+  info "Restarting VPS Pulse..."
+  if is_systemd; then
+    systemctl restart "${SERVICE_NAME}.service"
+    success "VPS Pulse restarted (systemd)"
+  elif command -v pm2 >/dev/null 2>&1; then
+    pm2 restart "${SERVICE_NAME}"
+    success "VPS Pulse restarted (pm2)"
+  fi
+}
+
+cmd_stop() {
+  info "Stopping VPS Pulse..."
+  if is_systemd; then
+    systemctl stop "${SERVICE_NAME}.service"
+  elif command -v pm2 >/dev/null 2>&1; then
+    pm2 stop "${SERVICE_NAME}"
+  fi
+  success "VPS Pulse stopped"
+}
+
+cmd_start() {
+  info "Starting VPS Pulse..."
+  if is_systemd; then
+    systemctl start "${SERVICE_NAME}.service"
+  elif command -v pm2 >/dev/null 2>&1; then
+    pm2 start "${SERVICE_NAME}"
+  fi
+  success "VPS Pulse started"
+}
+
+cmd_port() {
+  local new_port="${1:-}"
+  if [[ -z "$new_port" ]]; then
+    read -rp "Enter new port [1024-65535]: " new_port
+  fi
+  if ! [[ "$new_port" =~ ^[0-9]+$ ]] || (( new_port < 1 || new_port > 65535 )); then
+    error "Invalid port: $new_port"
+    exit 1
+  fi
+
+  info "Updating port to $new_port in $ENV_FILE..."
+  mkdir -p "$(dirname "$ENV_FILE")"
+  touch "$ENV_FILE"
+  if grep -q '^PORT=' "$ENV_FILE"; then
+    sed -i "s/^PORT=.*/PORT=$new_port/" "$ENV_FILE"
+  else
+    echo "PORT=$new_port" >> "$ENV_FILE"
+  fi
+
+  if [[ -f "$INSTALL_DIR/.env" ]]; then
+    if grep -q '^PORT=' "$INSTALL_DIR/.env"; then
+      sed -i "s/^PORT=.*/PORT=$new_port/" "$INSTALL_DIR/.env"
+    else
+      echo "PORT=$new_port" >> "$INSTALL_DIR/.env"
+    fi
+  fi
+
+  if command -v ufw >/dev/null 2>&1 && ufw status 2>/dev/null | grep -q '^Status: active'; then
+    ufw allow "${new_port}/tcp" >/dev/null
+    success "Allowed port $new_port in UFW firewall"
+  fi
+
+  cmd_restart
+  success "Port changed to $new_port"
+}
+
+cmd_update() {
+  info "Pulling latest version from GitHub..."
+  cd "$INSTALL_DIR"
+  git fetch origin main
+  git reset --hard origin/main
+  info "Rebuilding client..."
+  npm install
+  npm run build
+  cmd_restart
+  success "VPS Pulse updated to latest version!"
+}
+
+cmd_uninstall() {
+  read -rp "Are you sure you want to completely uninstall VPS Pulse? [y/N]: " confirm
+  if [[ "$confirm" =~ ^[Yy]$ ]]; then
+    cmd_stop || true
+    if is_systemd; then
+      systemctl disable "${SERVICE_NAME}.service" >/dev/null 2>&1 || true
+      rm -f "/etc/systemd/system/${SERVICE_NAME}.service"
+      systemctl daemon-reload
+    elif command -v pm2 >/dev/null 2>&1; then
+      pm2 delete "${SERVICE_NAME}" >/dev/null 2>&1 || true
+      pm2 save >/dev/null 2>&1 || true
+    fi
+    rm -rf "$INSTALL_DIR"
+    rm -rf "/etc/vps-pulse"
+    rm -f "/usr/local/bin/vpspulsectl"
+    success "VPS Pulse has been completely removed."
+  else
+    info "Uninstall cancelled."
+  fi
+}
+
+case "${1:-}" in
+  status)      cmd_status ;;
+  logs)        cmd_logs ;;
+  restart)     cmd_restart ;;
+  stop)        cmd_stop ;;
+  start)       cmd_start ;;
+  port)        shift; cmd_port "$@" ;;
+  update)      cmd_update ;;
+  uninstall)   cmd_uninstall ;;
+  *)
+    echo "Usage: vpspulsectl {status|logs|restart|stop|start|port|update|uninstall}"
+    exit 1
+    ;;
+esac
