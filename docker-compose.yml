@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  vps-pulse:
+    build: .
+    container_name: vps-pulse
+    restart: unless-stopped
+    network_mode: "host"
+    environment:
+      - PORT=7777
+      - NODE_ENV=production
+    volumes:
+      - /proc:/host/proc:ro
