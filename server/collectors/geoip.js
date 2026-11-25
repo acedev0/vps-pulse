@@ -80,10 +80,16 @@ export function lookupIp(ip) {
   const guessedOrg = guessOrg(cleanIp);
 
   let result = null;
-  if (geo && geo.ll && geo.ll.length >= 2) {
+  if (
+    geo &&
+    Array.isArray(geo.ll) &&
+    geo.ll.length >= 2 &&
+    Number.isFinite(geo.ll[0]) &&
+    Number.isFinite(geo.ll[1])
+  ) {
     result = {
       ip: cleanIp,
-      city: geo.city || geo.region || 'Unknown City',
+      city: geo.city || geo.region || 'Edge Node',
       country: geo.country || 'UN',
       flag: getCountryFlag(geo.country),
       ll: [geo.ll[0], geo.ll[1]], // [latitude, longitude]

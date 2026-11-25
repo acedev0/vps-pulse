@@ -159,7 +159,8 @@ wss.on('connection', (ws) => {
 
 async function buildTelemetryPayload() {
   if (forceDemoMode || !IS_LINUX) {
-    return generateSimulatedTelemetry();
+    const sim = generateSimulatedTelemetry(VPS_PROFILE);
+    return { ...sim, demoMode: forceDemoMode, connectedClients };
   }
 
   const [system, network, sockets] = await Promise.all([
@@ -183,6 +184,7 @@ async function buildTelemetryPayload() {
     network: netStats,
     sockets: sockets || [],
     vps: VPS_PROFILE,
+    demoMode: forceDemoMode,
     connectedClients
   };
 }

@@ -20,7 +20,7 @@ let mockCumulativeTx = 1024 * 1024 * 1024 * 138.2; // 138.2 GB
 let mockTime = Date.now();
 const mockHistory = [];
 
-export function generateSimulatedTelemetry() {
+export function generateSimulatedTelemetry(vpsProfile = null) {
   const now = Date.now();
   const dt = (now - mockTime) / 1000;
   mockTime = now;
@@ -114,13 +114,14 @@ export function generateSimulatedTelemetry() {
       history: mockHistory
     },
     sockets: activeSockets,
-    vps: {
-      ip: '139.162.52.81',
-      city: 'Singapore',
-      country: 'SG',
-      flag: '🇸🇬',
-      ll: [1.2897, 103.8501],
-      org: 'Akamai Connected Cloud / Linode'
+    vps: vpsProfile || {
+      ip: '127.0.0.1',
+      hostname: 'demo-vps',
+      city: 'Cloud Node',
+      country: 'DEMO',
+      flag: '🌐',
+      ll: [1.3521, 103.8198],
+      org: 'Simulation Mode'
     }
   };
 }
