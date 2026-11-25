@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <img alt="Release" src="https://img.shields.io/badge/Release-v3.0.0-blue?style=flat-square">
+  <img alt="Release" src="https://img.shields.io/badge/Release-v3.1.0-blue?style=flat-square">
   <img alt="Node.js" src="https://img.shields.io/badge/Node.js-18%2B%20%7C%2020%2B%20LTS-339933?style=flat-square&logo=node.js&logoColor=white">
   <img alt="React" src="https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black">
   <img alt="Three.js" src="https://img.shields.io/badge/Three.js-WebGL-black?style=flat-square&logo=three.js&logoColor=white">
@@ -23,12 +23,23 @@
 
 ## 📸 Interface Previews
 
+### Day/Night Satellite 3D Earth & Speed Telemetry
 <p align="center">
   <img src="screenshots/vps-pulse-dashboard.png" alt="VPS Pulse Real-Time Dashboard" width="100%">
 </p>
 
+### City Lights Night Mode & Live Burst Tracking
 <p align="center">
-  <img src="screenshots/vps-pulse-earth-globe.png" alt="3D Planetary Geodesic Traffic Engine" width="100%">
+  <img src="screenshots/vps-pulse-earth-globe.png" alt="3D Planetary City Lights Traffic Engine" width="100%">
+</p>
+
+### Orbital Radar Topology & Live Stream Matrix
+<p align="center">
+  <img src="screenshots/vps-pulse-radar.png" alt="Orbital Radar Topology Mode" width="100%">
+</p>
+
+<p align="center">
+  <img src="screenshots/vps-pulse-matrix.png" alt="Top Sources Destinations and Live Socket Matrix" width="100%">
 </p>
 
 ---
@@ -105,31 +116,24 @@ sudo vpspulsectl port 8080
 
 ## ✨ Features
 
-- 🌍 **Photorealistic 3D Earth Visualizer**
-  - High-resolution planetary textures with bump mapping and atmospheric rim glow.
-  - Independent rotating cloud atmospheric layer.
-  - **Great-Circle SLERP Geodesic Arcs**: Calculates true spherical curvature between remote IP endpoints and the VPS node without chord clipping or subterranean sagging.
-  - Interactive camera orbit, zoom controls, and responsive coordinate node tooltips.
+- 🌍 **Day/Night GLSL 3D Earth Visualizer**
+  - Custom WebGL shader blending sunlit satellite imagery, ocean specular glint, sunset twilight terminator, and nocturnal city lights with a 3-mode theme switcher (**Day/Night**, **Lights**, **Matrix**).
+  - Deep-space multi-tint starfield, volumetric Fresnel rim glow, orbital telemetry rings, and drifting cloud atmosphere.
+  - **Persistent Great-Circle SLERP Laser Beams**: Corridor-aggregated trajectories with glowing optical-fiber tubes, white-hot comet photon packets, and continuous 60 FPS motion without WebSocket reset jitter.
+  - **Orbital Radar Mode**: Clean, non-overlapping tactical radar scope grouping corridors by direction and geographic region.
 
-- ⏱️ **Precision Speedometer Gauges (Mbps)**
-  - Dual gauge cluster for real-time Inbound (Download) and Outbound (Upload) throughput.
-  - Non-linear logarithmic dial scaling (`0` to `1,000+ Mbps`) for ultra-responsive reading at both low and high bandwidth saturations.
-  - Cumulative session volume tracking in Gigabytes and Terabytes.
+- ⏱️ **60 FPS Cockpit Speedometer Dials (Mbps / Gbps)**
+  - Second-order spring-damper physics driving zero-re-render SVG needles for Download (RX) and Upload (TX).
+  - Non-linear logarithmic scale ticks (`0` to `1k+`) with decaying Peak Hold marker and cumulative session transfer totals.
 
-- 📈 **60-Second Real-Time Bandwidth Oscilloscope**
-  - Smooth Bezier-interpolated dual-trace canvas oscilloscope (Cyan for Download, Magenta for Upload).
-  - Dynamic peak scaling and instantaneous rate measurement.
+- 📈 **Auto-Ranging Phosphor Oscilloscope**
+  - Dual-pass bloom waveform renderer with dynamically stepped Y-axis scaling (`2` to `2500 Mbps`), pulsing sonar live trace dots, and an interactive hover scanner crosshair.
 
-- 🖥️ **Hardware Vitals HUD**
-  - Real-time CPU core utilization.
-  - Physical RAM consumption and swap state.
-  - Root storage filesystem capacity and mount status.
-  - System uptime counter and Linux 1/5/15-minute load averages.
+- 🖥️ **Hardware Vitals HUD & Live Sparklines**
+  - Rolling 30-sample SVG area sparklines embedded inside CPU, Memory (+ Swap), Storage (+ Free Space), and System Load (+ Live Ticking Uptime) cards.
 
-- 🌐 **Live Socket & ASN Matrix**
-  - Inspects active established TCP/UDP sockets directly from the kernel.
-  - Displays remote endpoints, process names, system PIDs, country flags, and geographic locations.
-  - Instant filtering by traffic flow (All, Inbound, Outbound) or search query.
+- 🌐 **Destination Insights & Live Socket Matrix**
+  - Instant "Top Download Sources (Where From)" & "Top Upload Destinations (Where To)" horizontal meters alongside a toggleable **Grouped Endpoint** or **All Ports** live TCP/UDP socket table.
 
 ---
 
